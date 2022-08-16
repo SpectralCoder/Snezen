@@ -1,8 +1,8 @@
 from fastapi import Depends, FastAPI, HTTPException, status, APIRouter
-from Auth.auth_help import get_user, get_password_hash, create_user, timedelta, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, authenticate_user, OAuth2PasswordRequestForm, get_current_active_user
+from Auth.auth_help import get_user, get_password_hash, create_user, timedelta, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, authenticate_user, OAuth2PasswordRequestForm, get_current_active_user, REFRESH_TOKEN_EXPIRE_MINUTES, create_refresh_token
 from Auth.auth_models import Token, User
 
-router = APIRouter( prefix="/auth")
+router = APIRouter( prefix="")
 
 @router.post("/signup", response_model=Token, status_code=status.HTTP_201_CREATED)
 async def signup(form_data: User):
@@ -20,7 +20,11 @@ async def signup(form_data: User):
         access_token = create_access_token(
             data={"sub": created_user["username"]}, expires_delta=access_token_expires
         )
-        return {"access_token": access_token, "token_type": "bearer"}
+        refresh_token_expires=timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+        refresh_token = create_refresh_token(
+            data={"sub": user["username"]}, expires_delta=refresh_token_expires
+        )
+        return {"access_token": access_token, "refresh_token":refresh_token, "token_type": "bearer"}
 
 
 @router.post("/token", response_model=Token)
@@ -36,7 +40,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub": user["username"]}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token_expires=timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    refresh_token = create_refresh_token(
+        data={"sub": user["username"]}, expires_delta=refresh_token_expires
+    )
+    return {"access_token": access_token, "refresh_token":refresh_token, "token_type": "bearer"}
 
 
 @router.get("/users/me/", response_model=User)

@@ -1,0 +1,6 @@
+//activate source
+source venv/bin/activate //activate virtual environment
+
+
+//Run the fastAPI app
+uvicorn main:app --reload
